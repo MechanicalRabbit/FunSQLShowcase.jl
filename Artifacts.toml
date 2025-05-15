@@ -1,0 +1,13 @@
+[mimic-iv-demo]
+git-tree-sha1 = "e9227b6756a382f42ab91cfb5ea8fda781c7b95e"
+
+    [[mimic-iv-demo.download]]
+    url = "https://github.com/MechanicalRabbit/FunSQL-TestData/releases/download/20250504/mimic-iv-demo-2.2.duckdb.tgz"
+    sha256 = "e534b45b0d5c48dbe17594b8b74f72a4f5f04cb65c1b283c19247f2792e98c94"
+
+[eicu-crd-demo]
+git-tree-sha1 = "006da6f242eb440ffec3b706bd3edd06ea9831d0"
+
+    [[eicu-crd-demo.download]]
+    url = "https://github.com/MechanicalRabbit/FunSQL-TestData/releases/download/20250514/eicu-crd-demo-2.0.1.duckdb.tgz"
+    sha256 = "0e8752f71ac6d802fee5d08809e824fa69c23057dad796c9aec05bcdc6108608"
