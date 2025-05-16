@@ -228,7 +228,9 @@ version = "0.8.5"
 
 [[deps.FunSQL]]
 deps = ["DBInterface", "DataAPI", "Dates", "LRUCache", "OrderedCollections", "PrettyPrinting", "Tables"]
-git-tree-sha1 = "0d9b304dd53fae993db7e9885d8176f38b30236a"
+git-tree-sha1 = "67ebdf8d275b9a5ff9f3fa1bd083b0b1915e5841"
+repo-rev = "reflect_catalog"
+repo-url = "https://github.com/MechanicalRabbit/FunSQL.jl.git"
 uuid = "cf6cc811-59f4-4a10-b258-a8547a8f6407"
 version = "0.15.0"
 
