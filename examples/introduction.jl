@@ -80,7 +80,8 @@ end
 	from(patient)
 	group()
 	define(max_hospid => max(hospitalid)) # FunSQL
-	define(any_age => any_value(age)) # DuckDB
+	define(any_age => any_value(age)) # DuckDB aggregate as marked
+	define(geomean_hospid => geomean(hospitalid)) # DuckDB aggregate marcro
 end
 
 # ╔═╡ Cell order:
