@@ -53,13 +53,13 @@ md"""
 
 # ╔═╡ fa2bac9e-31ac-11f0-0569-d7837ec459af
 begin
-    conn = DBInterface.connect(DuckDB.DB)
+    db_conn = DBInterface.connect(DuckDB.DB)
     eicu_dbfile = joinpath(artifact"eicu-crd-demo", "eicu-crd-demo-2.0.1.duckdb")
-    DBInterface.execute(conn, "ATTACH '$(eicu_dbfile)' AS eicu (READ_ONLY);")
-    catalog = FunSQL.reflect(conn; catalog = "eicu")
-    db = FunSQL.SQLConnection(conn; catalog)
+    DBInterface.execute(db_conn, "ATTACH '$(eicu_dbfile)' AS eicu (READ_ONLY);")
+    catalog = FunSQL.reflect(db_conn; catalog = "eicu")
+    eicu_db = FunSQL.SQLConnection(db_conn; catalog)
     macro eicu(q)
-        return PlutoFunSQL.query_macro(__module__, __source__, db, q)
+        return PlutoFunSQL.query_macro(__module__, __source__, eicu_db, q)
     end
 end
 
@@ -69,10 +69,26 @@ end
     count_records()
 end
 
+# ╔═╡ ae15ec94-8b58-45b6-833c-eb9fd8cff794
+begin
+    DBInterface.execute(eicu_db, """INSTALL tpch;""")
+	DBInterface.execute(eicu_db, """LOAD tpch;""")
+end
+
+# ╔═╡ f597883d-51b8-4524-96a8-51351082e063
+@eicu begin
+	from(patient)
+	group()
+	define(max_hospid => max(hospitalid)) # FunSQL
+	define(any_age => any_value(age)) # DuckDB
+end
+
 # ╔═╡ Cell order:
 # ╟─b8e5e6ff-3641-4295-80f5-f283195866f0
 # ╟─61a24b4f-45ba-4451-87a4-f22b4378bb18
 # ╠═c88a31f9-9065-4457-b9c9-19f10f7a2172
+# ╠═ae15ec94-8b58-45b6-833c-eb9fd8cff794
+# ╠═f597883d-51b8-4524-96a8-51351082e063
 # ╟─fff8f53f-f08e-44c6-94a9-17e8d213c497
 # ╟─605f262b-8e25-4b72-8d24-b3e2c2b1fdb9
 # ╠═7d693006-5560-4245-941b-06ee72cdf531
