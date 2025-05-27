@@ -19,11 +19,11 @@ end
 
 # ╔═╡ b8e5e6ff-3641-4295-80f5-f283195866f0
 md"""
-## eICU-CRD Database Overview
+## MIMIC-IV Database Overview
 """
 
 # ╔═╡ 61a24b4f-45ba-4451-87a4-f22b4378bb18
-md"""Return number of patient records in the eICU-CRD database."""
+md"""Return number of patient records in the MIMIC-IV database."""
 
 # ╔═╡ fff8f53f-f08e-44c6-94a9-17e8d213c497
 md"""
@@ -47,32 +47,43 @@ md"""
 
 - use dependencies needed for querying
 - create an in-memory database
-- attach the eICU-CRD demo database
+- attach the eICU-CRD and MIMIC IV demo database
 - define @eicu macro to use that database
 """
 
 # ╔═╡ fa2bac9e-31ac-11f0-0569-d7837ec459af
 begin
     db_conn = DBInterface.connect(DuckDB.DB)
+
     eicu_dbfile = joinpath(artifact"eicu-crd-demo", "eicu-crd-demo-2.0.1.duckdb")
     DBInterface.execute(db_conn, "ATTACH '$(eicu_dbfile)' AS eicu (READ_ONLY);")
-    catalog = FunSQL.reflect(db_conn; catalog = "eicu")
-    eicu_db = FunSQL.SQLConnection(db_conn; catalog)
+    eicu_catalog = FunSQL.reflect(db_conn; catalog = "eicu")
+    eicu_db = FunSQL.SQLConnection(db_conn; catalog = eicu_catalog)
     macro eicu(q)
         return PlutoFunSQL.query_macro(__module__, __source__, eicu_db, q)
     end
+
+	mimic_dbfile = joinpath(artifact"mimic-iv-demo", "mimic-iv-demo-2.2.duckdb")
+    DuckDB.execute(db_conn, "ATTACH '$(mimic_dbfile)' AS mimic (READ_ONLY);")
+	mimic_catalog = FunSQL.reflect(db_conn; catalog = "mimic")
+    mimic_db = FunSQL.SQLConnection(db_conn; catalog = mimic_catalog)
+    macro mimic(q)
+        return PlutoFunSQL.query_macro(__module__, __source__, mimic_db, q)
+    end
+    nothing
 end
 
 # ╔═╡ c88a31f9-9065-4457-b9c9-19f10f7a2172
-@eicu begin
-    from(patient)
+@mimic begin
+    from(patients)
+	snoop_fields()
     count_records()
 end
 
-# ╔═╡ ae15ec94-8b58-45b6-833c-eb9fd8cff794
-begin
-    DBInterface.execute(eicu_db, """INSTALL tpch;""")
-	DBInterface.execute(eicu_db, """LOAD tpch;""")
+# ╔═╡ b8009dce-8599-4b77-bf8e-252a2b282a6b
+@mimic begin
+    from(patients)
+    summary()
 end
 
 # ╔═╡ f597883d-51b8-4524-96a8-51351082e063
@@ -88,7 +99,7 @@ end
 # ╟─b8e5e6ff-3641-4295-80f5-f283195866f0
 # ╟─61a24b4f-45ba-4451-87a4-f22b4378bb18
 # ╠═c88a31f9-9065-4457-b9c9-19f10f7a2172
-# ╠═ae15ec94-8b58-45b6-833c-eb9fd8cff794
+# ╠═b8009dce-8599-4b77-bf8e-252a2b282a6b
 # ╠═f597883d-51b8-4524-96a8-51351082e063
 # ╟─fff8f53f-f08e-44c6-94a9-17e8d213c497
 # ╟─605f262b-8e25-4b72-8d24-b3e2c2b1fdb9

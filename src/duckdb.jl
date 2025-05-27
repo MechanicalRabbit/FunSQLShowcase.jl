@@ -1,9 +1,16 @@
+# Include logic needed for DuckDB dialect specific to FunSQL needs.
+# We plan to add this logic, with different implementation, to FunSQL.jl
+
+
 using DuckDB
+using FunSQL
+using DBInterface
 
 # We need to identify macros that are aggregates, but this isn't in the
 # duckdb_functions(), therefore we list them all here, as copied from
 # the documentation; see https://github.com/duckdb/duckdb/issues/17645
 const duckdb_aggregates = [
+ # collected from https://duckdb.org/docs/stable/sql/functions/aggregates
  # general aggregate functions
  "any_value", "arbitrary", "arg_max", "arg_max_null", "arg_min",
  "arg_min_null", "array_agg", "avg", "bit_and", "bit_or", "bitstring_agg",
@@ -45,7 +52,8 @@ let conn = DBInterface.connect(DuckDB.DB, ":memory:")
         GROUP BY function_name
         ORDER BY function_name
         """
-    fun_names = [x for x in names(FunSQL) if startswith(string(x), "funsql_")]
+    mod_names = filter(x -> startswith(string(x), "funsql_"), names(@__MODULE__, all=true))
+    fun_names = filter(x -> startswith(string(x), "funsql_"), names(FunSQL))
     stmt = DBInterface.prepare(conn, functions_query)
     curs = DBInterface.execute(stmt)
 
@@ -55,9 +63,7 @@ let conn = DBInterface.connect(DuckDB.DB, ":memory:")
         is_agg = is_agg || fn in duckdb_aggregates
         fun  = Symbol("funsql_$fn")
         name = QuoteNode(Symbol(fn))
-        if in(fun, fun_names)
-            continue
-        end
+        fun in union(fun_names, mod_names) ? continue : nothing
         closure = is_agg ? FunSQL.AggClosure : FunSQL.FunClosure
         eval(:(
             begin
@@ -70,6 +76,13 @@ let conn = DBInterface.connect(DuckDB.DB, ":memory:")
         eval(:(
             begin
                 const $fun = FunSQL.$fun
+                export $fun
+            end))
+    end
+
+    for fun in mod_names
+        eval(:(
+            begin
                 export $fun
             end))
     end
