@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.20.8
+# v0.20.9
 
 using Markdown
 using InteractiveUtils
@@ -11,6 +11,11 @@ begin
     Pkg.instantiate() # download Artifacts.toml
     using Revise
     using DataFrames
+	using Observables
+	using Pluto
+	using PlutoUI
+	using ProgressLogging
+	using HypertextLiteral
     using FunSQL
     using DuckDB
     using DBInterface
@@ -19,11 +24,11 @@ end
 
 # ╔═╡ b8e5e6ff-3641-4295-80f5-f283195866f0
 md"""
-## MIMIC-IV Database Overview
+## eICU Database Overview
 """
 
 # ╔═╡ 61a24b4f-45ba-4451-87a4-f22b4378bb18
-md"""Return number of patient records in the MIMIC-IV database."""
+md"""Return number of patient admission records in the eICU database."""
 
 # ╔═╡ fff8f53f-f08e-44c6-94a9-17e8d213c497
 md"""
@@ -63,27 +68,30 @@ begin
         return PlutoFunSQL.query_macro(__module__, __source__, eicu_db, q)
     end
 
-	mimic_dbfile = joinpath(artifact"mimic-iv-demo", "mimic-iv-demo-2.2.duckdb")
-    DuckDB.execute(db_conn, "ATTACH '$(mimic_dbfile)' AS mimic (READ_ONLY);")
-	mimic_catalog = FunSQL.reflect(db_conn; catalog = "mimic")
-    mimic_db = FunSQL.SQLConnection(db_conn; catalog = mimic_catalog)
-    macro mimic(q)
-        return PlutoFunSQL.query_macro(__module__, __source__, mimic_db, q)
-    end
     nothing
 end
 
 # ╔═╡ c88a31f9-9065-4457-b9c9-19f10f7a2172
-@mimic begin
-    from(patients)
+@eicu begin
+    from(patient)
 	snoop_fields()
     count_records()
 end
 
-# ╔═╡ b8009dce-8599-4b77-bf8e-252a2b282a6b
-@mimic begin
-    from(patients)
-    summary()
+# ╔═╡ 74dd3c6e-6632-4f94-8980-d9065912bc3b
+begin
+	let parts = []
+	@progress for t in sort(collect(keys(eicu_catalog)))
+		push!(parts, @htl("""
+          <dt>$t</dt>
+		  <dd>$(@eicu begin
+		    from($t)
+		    summary(exact=true)
+		  end)</dd>
+    	"""))
+	end		
+	@htl("<dl>$parts</dl>")
+	end
 end
 
 # ╔═╡ f597883d-51b8-4524-96a8-51351082e063
@@ -99,7 +107,7 @@ end
 # ╟─b8e5e6ff-3641-4295-80f5-f283195866f0
 # ╟─61a24b4f-45ba-4451-87a4-f22b4378bb18
 # ╠═c88a31f9-9065-4457-b9c9-19f10f7a2172
-# ╠═b8009dce-8599-4b77-bf8e-252a2b282a6b
+# ╠═74dd3c6e-6632-4f94-8980-d9065912bc3b
 # ╠═f597883d-51b8-4524-96a8-51351082e063
 # ╟─fff8f53f-f08e-44c6-94a9-17e8d213c497
 # ╟─605f262b-8e25-4b72-8d24-b3e2c2b1fdb9
