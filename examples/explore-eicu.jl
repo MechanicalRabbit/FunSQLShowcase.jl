@@ -64,10 +64,9 @@ begin
     DBInterface.execute(db_conn, "ATTACH '$(eicu_dbfile)' AS eicu (READ_ONLY);")
     eicu_catalog = FunSQL.reflect(db_conn; catalog = "eicu")
     eicu_db = FunSQL.SQLConnection(db_conn; catalog = eicu_catalog)
-    macro eicu(q)
-        return PlutoFunSQL.query_macro(__module__, __source__, eicu_db, q)
+    macro eicu(ex, args...)
+        esc(:(DataFrames.DataFrame(@funsql(eicu_db, $ex, $(args...)))))
     end
-
     nothing
 end
 
@@ -85,7 +84,7 @@ begin
 		push!(parts, @htl("""
           <dt>$t</dt>
 		  <dd>$(@eicu begin
-		    from($t)
+		    from($(t))
 		    summary(exact=true)
 		  end)</dd>
     	"""))

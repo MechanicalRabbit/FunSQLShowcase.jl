@@ -2,7 +2,7 @@
 
 julia_version = "1.11.4"
 manifest_format = "2.0"
-project_hash = "fb2fc8ff1dbfffda66fc9d5eeae0a064e5d35c5c"
+project_hash = "e267e95ba410fe986fdfaf08762f63020624f6b7"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -684,6 +684,12 @@ version = "1.11.0"
 git-tree-sha1 = "f305871d2f381d21527c770d4788c06c097c9bc1"
 uuid = "777ac1f9-54b0-4bf8-805c-2214025038e7"
 version = "1.2.0"
+
+[[deps.SimplePlutoInclude]]
+deps = ["Dates"]
+git-tree-sha1 = "a98dee6bdc63f648d92b28348dcb9b59c2881fbf"
+uuid = "6f00a2c5-ea4a-46bf-9183-91b7b57a087f"
+version = "0.2.0"
 
 [[deps.Sockets]]
 uuid = "6462fe0b-24de-5631-8697-dd941f90decc"

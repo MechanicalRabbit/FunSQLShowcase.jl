@@ -55,7 +55,22 @@ end
 """
     snoop_fields()
 
-    Displays current data structure, label and field names via @info.
+display the current query's label and field names
+
+# Examples
+
+```julia
+using PlutoFunSQL
+
+@funsql conn begin
+    from(patients)
+    snoop_fields()  # Will log: patients, [:subject_id, :gender, :anchor_age, ...]
+    limit(0)
+end
+```
+
+# See Also
+- [`CustomResolve`](@ref) for creating context-aware query transformations
 """
 funsql_snoop_fields() =
     PlutoFunSQL.CustomResolve() do n, ctx

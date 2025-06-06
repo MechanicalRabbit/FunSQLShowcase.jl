@@ -1,7 +1,6 @@
 # Include logic needed for DuckDB dialect specific to FunSQL needs.
 # We plan to add this logic, with different implementation, to FunSQL.jl
 
-
 using DuckDB
 using FunSQL
 using DBInterface
