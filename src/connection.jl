@@ -51,9 +51,27 @@ DBInterface.execute(conn::DataFrameConnection, sql::DataFrameSQLType; params...)
 DBInterface.execute(conn::DataFrameConnection, sql::DataFrameSQLType, params) =
     DBInterface.execute(DBInterface.prepare(conn, sql), params)
 
+function mergemetadata!(dst::D, src::S) where {D, S}
+    if DataAPI.metadatasupport(D).write && DataAPI.metadatasupport(S).read
+        for key in DataAPI.metadatakeys(src)
+            val, style = DataAPI.metadata(src, key, style = true)
+            DataAPI.metadata!(dst, key, val; style)
+        end
+    end
+    if DataAPI.colmetadatasupport(D).write && DataAPI.colmetadatasupport(S).read
+        for (col, keys) in DataAPI.colmetadatakeys(src)
+            for key in keys
+                val, style = DataAPI.colmetadata(src, col, key, style = true)
+                DataAPI.colmetadata!(dst, col, key, val; style)
+            end
+        end
+    end
+end
+
 function DBInterface.execute(stmt::DataFrameStatement, params)
     cr = DBInterface.execute(stmt.wrapped, params)
     df = DataFrame(cr)
+    mergemetadata!(df, cr)
     DBInterface.close!(cr)
     df
 end
