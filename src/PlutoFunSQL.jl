@@ -2,6 +2,7 @@ module PlutoFunSQL
 
 using DBInterface
 using DataFrames
+using DataAPI
 using FunSQL
 using FunSQL: @dissect, Chain, Fun, Var
 using HypertextLiteral
