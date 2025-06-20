@@ -413,3 +413,152 @@ convert(::Type{HypertextLiteral.Result}, sidebar::PlutoSidebar) =
       </script>
     </aside>
     """
+
+
+"""
+    PlutoIndex()
+
+Display a list of notebooks loaded from `pluto_export.json`.  Each list
+entry shows the notebook's title and description, which can be edited in
+the notebook's frontmatter.
+"""
+struct PlutoIndex
+end
+
+Base.show(io::IO, mime::MIME"text/html", index::PlutoIndex) =
+    show(io, mime, convert(HypertextLiteral.Result, index))
+
+convert(::Type{HypertextLiteral.Result}, ::PlutoIndex) =
+    @htl """
+    <style>
+      .pluto-funsql-index {
+        font-family: var(--system-ui-font-stack);
+        padding: 1rem;
+        margin: 1rem 0;
+        border-radius: 1rem;
+        color: var(--pluto-output-color);
+        background-color: var(--main-bg-color);
+        --main-bg-color: #fafafa;
+        --pluto-output-color: hsl(0, 0%, 36%);
+        --pluto-output-h-color: hsl(0, 0%, 21%);
+        --sidebar-li-active-bg: rgb(235, 235, 235);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .pluto-funsql-index {
+          --main-bg-color: #303030;
+          --pluto-output-color: hsl(0, 0%, 90%);
+          --pluto-output-h-color: hsl(0, 0%, 97%);
+          --sidebar-li-active-bg: rgb(82, 82, 82);
+        }
+      }
+
+      .pluto-funsql-index > section > ol {
+        font-weight: 500;
+        margin: 0;
+      }
+
+      .pluto-funsql-index > section > ol > li {
+        margin: 0.5em 0;
+      }
+
+      .pluto-funsql-index li a {
+        display: inline-flex;
+        flex-direction: column;
+        text-decoration: none;
+        color: var(--pluto-output-color);
+      }
+
+      .pluto-funsql-index li a:hover {
+        color: var(--pluto-output-h-color);
+      }
+
+      .pluto-funsql-index li small {
+        font-weight: 400;
+      }
+
+      .pluto-funsql-index > section > p {
+        padding: 0;
+        margin: 0.5em 10px;
+        font-style: italic;
+      }
+    </style>
+
+    <nav class="pluto-funsql-index">
+      <section><p>Loading notebook index&hellip;</p></section>
+      <script>
+        const navNode = currentScript.closest("nav")
+
+        const fetchExternalLinks = async () => {
+          try {
+            if (!window.pluto_disable_ui) {
+              throw(Error("In development, notebook index is not available"))
+            }
+            const response = await fetch("pluto_export.json")
+            if (!response.ok) {
+              throw(Error(response.statusText))
+            }
+            const json = await response.json()
+            let ns = Object.values(json.notebooks)
+            ns.sort((a, b) => {
+              const a_order = Number(a.frontmatter?.order)
+              const b_order = Number(b.frontmatter?.order)
+              if (isNaN(a_order) && isNaN(b_order)) {
+                return a.id < b.id ? -1 : a.id > b.id ? 1 : 0
+              }
+              else if (isNaN(a_order)) {
+                return 1
+              }
+              else if (isNaN(b_order)) {
+                return -1
+              }
+              else {
+                return a_order - b_order
+              }
+            })
+            return [ns, null]
+          }
+          catch (err) {
+            return [[], err]
+          }
+        }
+
+        const [externalLinks, externalLinksError] = await fetchExternalLinks()
+
+        const makeLinks = () => {
+          const currentPath = window.location.pathname.split("/").pop() || "index.html"
+          let links = []
+          for (const l of externalLinks) {
+            const title = l.frontmatter.title ?? n.id.replace(/\\.jl\$/, "")
+            const description = l.frontmatter.description
+            const current = l.html_path == currentPath
+            const aNode = document.createElement("a")
+            aNode.href = l.html_path == "index.html" ? "./" : l.html_path
+            aNode.innerText = aNode.title = title
+            if (current) {
+              aNode.classList.add("pluto-funsql-index-current")
+            }
+            if (description) {
+              const smallNode = document.createElement("small")
+              smallNode.innerText = description
+              aNode.append(smallNode)
+            }
+            links.push(html`<li>\${aNode}</li>`)
+          }
+          return links
+        }
+
+        const sectionNode = document.createElement("section")
+        const links = makeLinks()
+        if (links.length > 0) {
+          sectionNode.append(html`<ol>\${links}</ol>`)
+        }
+        if (externalLinksError) {
+          const pNode = document.createElement("p")
+          pNode.innerText = externalLinksError.message
+          sectionNode.append(pNode)
+        }
+        navNode.querySelector("section").replaceWith(sectionNode)
+      </script>
+    </nav>
+    """
