@@ -13,6 +13,7 @@ include("resolve.jl")
 include("summary.jl")
 include("validate.jl")
 include("drawio.jl")
+include("layout.jl")
 
 # keep last; export all funsql_
 include("duckdb.jl")
