@@ -10,9 +10,9 @@ using InteractiveUtils
 
 # ╔═╡ 97cd4db7-8e95-46b6-8d5e-73f93d422ee9
 begin
-    import Pkg
-    Pkg.activate(Base.current_project())
-    Pkg.instantiate()
+	import Pkg
+	Pkg.activate(Base.current_project())
+	Pkg.instantiate()
 end
 
 # ╔═╡ 422116fe-4e99-44ce-9c5b-7fd28b406909
@@ -23,13 +23,13 @@ using HypertextLiteral, ProgressLogging
 
 # ╔═╡ af75d0c6-7193-4c0a-aad9-880afc521f62
 begin
-    using FunSQL
-	using PlutoFunSQL.DuckDBQueries
-    using PlutoFunSQL.DynamicQueries
-	using PlutoFunSQL.SummarizeQueries
-	using PlutoFunSQL.ValidateQueries
-	using PlutoFunSQL.eICU
-	using PlutoFunSQL.PlutoLayout
+	using FunSQL
+	using FunSQLShowcase.DuckDBQueries
+	using FunSQLShowcase.DynamicQueries
+	using FunSQLShowcase.SummarizeQueries
+	using FunSQLShowcase.ValidateQueries
+	using FunSQLShowcase.eICU
+	using FunSQLShowcase.PlutoLayout
 end
 
 # ╔═╡ b8e5e6ff-3641-4295-80f5-f283195866f0
@@ -77,9 +77,9 @@ end
 
 # ╔═╡ c88a31f9-9065-4457-b9c9-19f10f7a2172
 @eicu begin
-    from(patient)
+	from(patient)
 	snoop_fields()
-    tally()
+	tally()
 end
 
 # ╔═╡ d9d744a0-1229-4052-aae0-bdbe7e99c4cd

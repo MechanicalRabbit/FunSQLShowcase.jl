@@ -10,9 +10,9 @@ using InteractiveUtils
 
 # ╔═╡ 6da59f7a-8c98-4022-8b5e-f35892213631
 begin
-    import Pkg
-    Pkg.activate(Base.current_project())
-    Pkg.instantiate()
+	import Pkg
+	Pkg.activate(Base.current_project())
+	Pkg.instantiate()
 end
 
 # ╔═╡ d21919f4-1f35-4165-9d96-44917e88bd07
@@ -20,12 +20,12 @@ using Revise
 
 # ╔═╡ b9beff0c-1727-43a3-a0ac-e1e451a2f4f2
 begin
-    using FunSQL
-    using PlutoFunSQL.DynamicQueries
-	using PlutoFunSQL.SummarizeQueries
-	using PlutoFunSQL.ValidateQueries
-	using PlutoFunSQL.MIMIC
-	using PlutoFunSQL.PlutoLayout
+	using FunSQL
+	using FunSQLShowcase.DynamicQueries
+	using FunSQLShowcase.SummarizeQueries
+	using FunSQLShowcase.ValidateQueries
+	using FunSQLShowcase.MIMIC
+	using FunSQLShowcase.PlutoLayout
 end
 
 # ╔═╡ b8e5e6ff-3641-4295-80f5-f283195866f0
@@ -263,9 +263,9 @@ end
 
 # ╔═╡ c88a31f9-9065-4457-b9c9-19f10f7a2172
 @mimic begin
-    from(patients)
+	from(patients)
 	snoop_fields()
-    tally()
+	tally()
 end
 
 # ╔═╡ c4e5994f-4001-4a65-bef7-5bcb85783db1

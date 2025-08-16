@@ -1,6 +1,6 @@
-name = "PlutoFunSQL"
+name = "FunSQLShowcase"
 uuid = "62600ddb-ce39-4ee3-b853-49e5dba2125b"
-version = "0.20250515.0"
+version = "0.1"
 
 [deps]
 AbstractPlutoDingetjes = "6e696c72-6542-2067-7265-42206c756150"

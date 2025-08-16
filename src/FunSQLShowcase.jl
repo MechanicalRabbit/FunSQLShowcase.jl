@@ -1,4 +1,4 @@
-module PlutoFunSQL
+module FunSQLShowcase
 
 include("connection.jl")
 include("duckdb.jl")

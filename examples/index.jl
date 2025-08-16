@@ -10,16 +10,16 @@ using InteractiveUtils
 
 # ╔═╡ 48ed3b31-f5a1-43fd-a0a1-30c2920804ba
 begin
-    import Pkg
-    Pkg.activate(Base.current_project())
-    Pkg.instantiate()
+	import Pkg
+	Pkg.activate(Base.current_project())
+	Pkg.instantiate()
 end
 
 # ╔═╡ 8facf1da-447e-49a3-825d-90f4a5c352c9
 using Revise
 
 # ╔═╡ 455d3d52-39ea-4d89-8678-846496bde48a
-using PlutoFunSQL.PlutoLayout
+using FunSQLShowcase.PlutoLayout
 
 # ╔═╡ edb93cc8-859e-4433-9acd-d025be2a7d85
 md"""

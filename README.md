@@ -1,4 +1,3 @@
-### PlutoFunSQL.jl -- a FunSQL IDE in Pluto
+# FunSQL Showcase
 
-This project is a FunSQL IDE using the Julia Pluto package.
-It also provides evaluation ETL and OMOP queries over MIMIC data.
+Examples of using [FunSQL.jl](https://github.com/MechanicalRabbit/FunSQL.jl) to query and transform healthcare data.
