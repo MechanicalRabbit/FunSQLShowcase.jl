@@ -1,5 +1,22 @@
-# various meta-data for MIMIC-IV schema
-# it's not clear where these should go
+# MIMIC demo.
+
+module MIMIC
+
+export connect_mimic_iv_demo
+
+using DBInterface
+using DuckDB
+using FunSQL
+using Pkg.Artifacts
+using ..DataFrameConnections
+
+function connect_mimic_iv_demo()
+    path = joinpath(artifact"mimic-iv-demo", "mimic-iv-demo-2.2.duckdb")
+    conn = DBInterface.connect(DuckDB.DB)
+    DBInterface.execute(conn, "ATTACH '$(path)' AS mimic (READ_ONLY)")
+    catalog = FunSQL.reflect(conn, catalog = "mimic")
+    DataFrameConnection(FunSQL.SQLConnection(conn; catalog))
+end
 
 const mimic_module = Dict{Symbol, Symbol}(
     :admissions => :hosp,
@@ -113,3 +130,5 @@ const mimic_fk = Dict{Symbol, Vector{NTuple{3, Symbol}}}(
                          (:hadm_id, :admissions, :hadm_id),
                          (:stay_id, :icustays, :stay_id),
                          (:itemid, :d_items, :itemid)])
+
+end

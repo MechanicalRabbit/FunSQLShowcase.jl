@@ -1,4 +1,10 @@
-# Custom format for DataFrame objects.
+# Custom Pluto formatter for DataFrame objects.
+
+module PlutoCustomFormat
+
+using DataFrames
+using HypertextLiteral
+using Tables
 
 const CustomFormatType = Union{AbstractDataFrame}
 
@@ -100,4 +106,6 @@ function _format_table_style(t)
     .pluto-funsql-scroll { max-height: 502px; overflow: auto; will-change: scroll-position; }
     </style>
     """
+end
+
 end

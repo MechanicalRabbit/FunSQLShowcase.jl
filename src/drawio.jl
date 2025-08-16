@@ -1,5 +1,14 @@
 # Editable DrawIO diagrams
 
+module PlutoDrawIO
+
+export DrawIO
+
+using AbstractPlutoDingetjes
+using HTTP
+using HypertextLiteral
+using Tables
+
 const DRAWIO_NEW_SVG =
     """
     <svg xmlns="http://www.w3.org/2000/svg" width="120" height="60">
@@ -195,4 +204,6 @@ function Base.show(io::IO, mime::MIME"text/html", drawio::DrawIO)
           $(HTML(svg))
         </figure>
         """)
+end
+
 end

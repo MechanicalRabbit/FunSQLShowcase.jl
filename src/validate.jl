@@ -1,3 +1,10 @@
+module ValidateQueries
+
+export funsql_validate_primary_key, funsql_validate_foreign_key
+
+using FunSQL
+using ..DuckDBQueries
+
 @funsql begin
 
 """ validate_primary_key(source, columns)
@@ -148,4 +155,6 @@ function _foreign_key_name(source, source_columns, target, target_columns)
         target_cols = join(string.(target_columns), ", ")
         "$(source_table) ($(source_cols)) → $(target_table) ($(target_cols))"
     end
+end
+
 end
