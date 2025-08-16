@@ -1,31 +1,36 @@
 ### A Pluto.jl notebook ###
-# v0.20.9
+# v0.20.16
+
+#> [frontmatter]
+#> order = "2"
+#> title = "MIMIC-IV Overview"
 
 using Markdown
 using InteractiveUtils
 
-# ╔═╡ ea49a14e-80c3-4d84-9749-6e192e7bb092
+# ╔═╡ 6da59f7a-8c98-4022-8b5e-f35892213631
 begin
-    using Pkg, Pkg.Artifacts
+    import Pkg
     Pkg.activate(Base.current_project())
-    Pkg.instantiate() # download Artifacts.toml
-	push!(LOAD_PATH, dirname(@__DIR__))
-    using DataFrames
-    using DBInterface
-    using DuckDB
-    using HypertextLiteral
-    using Observables
-    using Pluto
-    using PlutoUI
-	using SimplePlutoInclude
-    using Revise
+    Pkg.instantiate()
+end
+
+# ╔═╡ d21919f4-1f35-4165-9d96-44917e88bd07
+using Revise
+
+# ╔═╡ b9beff0c-1727-43a3-a0ac-e1e451a2f4f2
+begin
     using FunSQL
-    using PlutoFunSQL
+    using PlutoFunSQL.DynamicQueries
+	using PlutoFunSQL.SummarizeQueries
+	using PlutoFunSQL.ValidateQueries
+	using PlutoFunSQL.MIMIC
+	using PlutoFunSQL.PlutoLayout
 end
 
 # ╔═╡ b8e5e6ff-3641-4295-80f5-f283195866f0
 md"""
-## MIMIC-IV Database Overview
+# MIMIC-IV Overview
 """
 
 # ╔═╡ 61a24b4f-45ba-4451-87a4-f22b4378bb18
@@ -233,8 +238,9 @@ md"""
 """
 
 # ╔═╡ 7d693006-5560-4245-941b-06ee72cdf531
-@funsql begin
-    count_records() = group().select(count())
+@funsql tally() = begin
+	group()
+	define(n => count())
 end
 
 # ╔═╡ 9e9b6698-a772-4479-b11c-36046cf3fc21
@@ -242,35 +248,31 @@ md"""
 ### Notebook Setup
 
 - use dependencies needed for querying
-- create an in-memory database
-- attach the eICU-CRD and MIMIC IV demo database
-- define @eicu macro to use that database
+- connect to the MIMIC IV demo database
+- define @mimic macro to use that database
+- configure Pluto layout
 """
 
-# ╔═╡ fa2bac9e-31ac-11f0-0569-d7837ec459af
-begin
-    db_conn = DBInterface.connect(DuckDB.DB)
+# ╔═╡ e11a84c6-e762-47d9-a366-13c9b39d7e3f
+mimic_db = connect_mimic_iv_demo()
 
-	mimic_dbfile = joinpath(artifact"mimic-iv-demo", "mimic-iv-demo-2.2.duckdb")
-	#mimic_dbfile = "/opt/physionet/mimic-iv-3.1.duckdb"
-    DuckDB.execute(db_conn, "ATTACH '$(mimic_dbfile)' AS mimic (READ_ONLY);")
-	mimic_catalog = FunSQL.reflect(db_conn; catalog = "mimic")
-    mimic_db = FunSQL.SQLConnection(db_conn; catalog = mimic_catalog)
-    macro mimic(ex, args...)
-        esc(:(DataFrames.DataFrame(@funsql(mimic_db, $ex, $(args...)))))
-    end
-	@plutoinclude "mimic_catalog.jl"
+# ╔═╡ 9a9e8bbd-17ab-41aa-b744-78fb13c8ac30
+macro mimic(ex, args...)
+	esc(:(@funsql($mimic_db, $ex, $(args...))))
 end
 
 # ╔═╡ c88a31f9-9065-4457-b9c9-19f10f7a2172
 @mimic begin
     from(patients)
 	snoop_fields()
-    count_records()
+    tally()
 end
 
+# ╔═╡ c4e5994f-4001-4a65-bef7-5bcb85783db1
+@mimic summarize_database()
+
 # ╔═╡ b4063097-f70b-5178-8d6f-1e69081ce9c8
-@mimic from(admissions).summary()
+@mimic from(admissions).summarize()
 
 # ╔═╡ 4380c98a-cc71-4dbe-9718-ae446f1ce238
 @mimic validate_primary_key(admissions, hadm_id)
@@ -279,10 +281,10 @@ end
 @mimic validate_foreign_key(admissions, subject_id, patients)
 
 # ╔═╡ 5ac65f7f-bed8-51a7-9f98-c9d18e6afe05
-@mimic from(caregiver).summary()
+@mimic from(caregiver).summarize()
 
 # ╔═╡ d1e40c08-34e0-5a4b-85a2-58dd1d05cf4a
-@mimic from(chartevents).summary()
+@mimic from(chartevents).summarize()
 
 # ╔═╡ 36ccbb35-f24b-4751-8a57-3fc349501e53
 @mimic append(
@@ -293,37 +295,37 @@ end
 )
 
 # ╔═╡ a8d1fb96-ff6a-5df8-af66-2f52c86ae2b7
-@mimic from(d_hcpcs).summary()
+@mimic from(d_hcpcs).summarize()
 
 # ╔═╡ dc244bb4-2edd-471b-a7ab-bd390d35eb0f
 @mimic validate_primary_key(d_hcpcs, code)
 
 # ╔═╡ 24e4580a-717b-5a18-94da-e200099299d9
-@mimic from(d_icd_diagnoses).summary()
+@mimic from(d_icd_diagnoses).summarize()
 
 # ╔═╡ 27db1140-43f4-4436-9fe8-e95860b63b08
 @mimic validate_primary_key(d_icd_diagnoses, [icd_code, icd_version])
 
 # ╔═╡ 7c9d0f34-5a5c-5cfe-9642-7c1f8723013a
-@mimic from(d_icd_procedures).summary()
+@mimic from(d_icd_procedures).summarize()
 
 # ╔═╡ f0d8cdf7-576a-4bb7-bbe2-21289911e144
 @mimic validate_primary_key(d_icd_procedures, [icd_code, icd_version])
 
 # ╔═╡ b84f17b0-067b-5409-b0c1-9565a8b6cded
-@mimic from(d_items).summary()
+@mimic from(d_items).summarize()
 
 # ╔═╡ 62a25ae2-1713-411f-a0ff-d92870aa10be
 @mimic validate_primary_key(d_items, itemid)
 
 # ╔═╡ b0a6b805-eda8-5f69-aa08-a3ba63e581cf
-@mimic from(d_labitems).summary()
+@mimic from(d_labitems).summarize()
 
 # ╔═╡ 59fd04bb-d33e-430d-868a-9936f4be4100
 @mimic validate_primary_key(d_labitems, itemid)
 
 # ╔═╡ 5115bcac-01e2-53e7-ada2-b4cc4475cca0
-@mimic from(datetimeevents).summary()
+@mimic from(datetimeevents).summarize()
 
 # ╔═╡ a9983ea8-32d0-4a33-8456-386fbaae3687
 @mimic validate_primary_key(datetimeevents, [stay_id, itemid, charttime])
@@ -337,7 +339,7 @@ end
 )
 
 # ╔═╡ a5dde77f-402f-53a8-b3ff-b796b5d58b39
-@mimic from(diagnoses_icd).summary()
+@mimic from(diagnoses_icd).summarize()
 
 # ╔═╡ b659e5b3-3385-4a3a-9776-261904cb3fe8
 @mimic validate_primary_key(diagnoses_icd, [hadm_id, seq_num, icd_code, icd_version])
@@ -349,7 +351,7 @@ end
 )
 
 # ╔═╡ 9d83259e-e662-512e-9d97-8f17f7193f36
-@mimic from(drgcodes).summary()
+@mimic from(drgcodes).summarize()
 
 # ╔═╡ a4ec730f-0da0-4b3e-8697-593fdd2c4b70
 @mimic append(
@@ -358,7 +360,7 @@ end
 )
 
 # ╔═╡ ac69632c-5ca2-591c-9b00-82d580784f8e
-@mimic from(emar).summary()
+@mimic from(emar).summarize()
 
 # ╔═╡ 6285abb7-8a41-444b-aa22-daa3585a4565
 @mimic validate_primary_key(emar, emar_id)
@@ -370,7 +372,7 @@ end
 )
 
 # ╔═╡ eab46aeb-b577-5997-ab9e-f5b53ca27ef4
-@mimic from(emar_detail).summary()
+@mimic from(emar_detail).summarize()
 
 # ╔═╡ 13ddb5c1-afdd-40b3-9505-b3960614ada0
 @mimic append(
@@ -379,7 +381,7 @@ end
 )
 
 # ╔═╡ 467c543a-7643-5f8f-8186-857965d065ad
-@mimic from(hcpcsevents).summary()
+@mimic from(hcpcsevents).summarize()
 
 # ╔═╡ ebe81545-d3db-4e2b-8cd7-e8934f3e5ff5
 @mimic validate_primary_key(hcpcsevents, [hadm_id, hcpcs_cd, seq_num])
@@ -392,7 +394,7 @@ end
 )
 
 # ╔═╡ ffbf98c8-256e-570d-8c1f-8c9a750e88c2
-@mimic from(icustays).summary()
+@mimic from(icustays).summarize()
 
 # ╔═╡ f9dedce0-056a-48ea-882c-864ebf8813a6
 @mimic validate_primary_key(icustays, stay_id)
@@ -404,10 +406,10 @@ end
 )
 
 # ╔═╡ ce4463f4-f035-5470-a252-36a055141ddf
-@mimic from(ingredientevents).summary()
+@mimic from(ingredientevents).summarize()
 
 # ╔═╡ ddae11ac-4d81-516d-ae78-58becbe26a7f
-@mimic from(inputevents).summary()
+@mimic from(inputevents).summarize()
 
 # ╔═╡ a3738ca7-781c-47ab-bece-6d50178b3b1b
 @mimic validate_primary_key(inputevents, [orderid, itemid])
@@ -421,7 +423,7 @@ end
 )
 
 # ╔═╡ 348201c0-19ee-5d16-a4fc-0b247c11a0e4
-@mimic from(labevents).summary()
+@mimic from(labevents).summarize()
 
 # ╔═╡ 73dbb553-4f72-422e-a98c-49b2c309ec64
 @mimic validate_primary_key(labevents, labevent_id)
@@ -433,7 +435,7 @@ end
 )
 
 # ╔═╡ bb4c7afd-d6bc-50a4-aaeb-0eb30d7be0c3
-@mimic from(microbiologyevents).summary()
+@mimic from(microbiologyevents).summarize()
 
 # ╔═╡ 4fb2cc59-d8f5-49df-94fa-cbb9a6aa3a6a
 @mimic validate_primary_key(microbiologyevents, microevent_id)
@@ -445,10 +447,10 @@ end
 )
 
 # ╔═╡ 3d5fc847-e255-5649-b50c-a252cca3cb75
-@mimic from(omr).summary()
+@mimic from(omr).summarize()
 
 # ╔═╡ e31c9ff3-db7b-53bf-94db-a3d9f0e37689
-@mimic from(outputevents).summary()
+@mimic from(outputevents).summarize()
 
 # ╔═╡ 18166175-9a71-40e3-8525-8fd9ebd7b665
 @mimic validate_primary_key(outputevents, [stay_id, charttime, itemid])
@@ -462,13 +464,13 @@ end
 )
 
 # ╔═╡ acd51a10-1177-50a4-9455-0195988e6fbe
-@mimic from(patients).summary()
+@mimic from(patients).summarize()
 
 # ╔═╡ 092a34b3-2764-4072-8174-fd4dd7c42b64
 @mimic validate_primary_key(patients, subject_id)
 
 # ╔═╡ 8ae6071d-f455-5b65-b87e-6c76d4ee24a9
-@mimic from(pharmacy).summary()
+@mimic from(pharmacy).summarize()
 
 # ╔═╡ 85392e55-c489-4765-b7aa-709698f73fa4
 @mimic validate_primary_key(pharmacy, pharmacy_id)
@@ -480,7 +482,7 @@ end
 )
 
 # ╔═╡ 37a435b6-dd78-5789-89c8-22e1471c6e43
-@mimic from(poe).summary()
+@mimic from(poe).summarize()
 
 # ╔═╡ 2d54db68-4406-4c4f-9e00-16a26f3b2737
 @mimic validate_primary_key(poe, poe_id)
@@ -492,7 +494,7 @@ end
 )
 
 # ╔═╡ e26611a1-e580-52cd-8822-f45ef5ae90e9
-@mimic from(poe_detail).summary()
+@mimic from(poe_detail).summarize()
 
 # ╔═╡ 8d0a8cb2-c8ba-43a9-bb53-c36aa5c38813
 @mimic validate_primary_key(poe_detail, [poe_id, field_name])
@@ -504,7 +506,7 @@ end
 )
 
 # ╔═╡ 0e9bc6d8-5ff9-5319-a7f8-1db7a4fb5716
-@mimic from(prescriptions).summary()
+@mimic from(prescriptions).summarize()
 
 # ╔═╡ 52acb2ae-4a48-443b-99ab-daa4e55aa731
 @mimic validate_primary_key(prescriptions, [pharmacy_id, drug_type, drug])
@@ -516,7 +518,7 @@ end
 )
 
 # ╔═╡ 9bf8df73-15fa-5bbc-af70-fcfb65b9fd06
-@mimic from(procedureevents).summary()
+@mimic from(procedureevents).summarize()
 
 # ╔═╡ 9b354c13-2732-4af6-bda2-95966ea406b3
 @mimic validate_primary_key(procedureevents, orderid)
@@ -530,7 +532,7 @@ end
 )
 
 # ╔═╡ 8630dbb4-3742-5baa-9b3d-28b55e19ce9b
-@mimic from(procedures_icd).summary()
+@mimic from(procedures_icd).summarize()
 
 # ╔═╡ 349972ad-f23f-4b19-aebe-870f6527fd2b
 @mimic validate_primary_key(procedures_icd, [hadm_id, seq_num, icd_code, icd_version])
@@ -542,10 +544,10 @@ end
 )
 
 # ╔═╡ d9c20d7c-2bf1-5630-bee7-5ff9659d9e91
-@mimic from(provider).summary()
+@mimic from(provider).summarize()
 
 # ╔═╡ fe2c071e-94e1-598c-a911-b555dfb22dfa
-@mimic from(services).summary()
+@mimic from(services).summarize()
 
 # ╔═╡ 3c04f998-311b-4309-a093-b451ec7b09d7
 @mimic validate_primary_key(services, [hadm_id, transfertime, curr_service])
@@ -557,7 +559,7 @@ end
 )
 
 # ╔═╡ 613b7dbc-58bd-5bd0-9606-597865ab1d84
-@mimic from(transfers).summary()
+@mimic from(transfers).summarize()
 
 # ╔═╡ 240fe1fa-5bdd-4846-9352-a9b3d55ac834
 @mimic validate_primary_key(transfers, transfer_id)
@@ -565,11 +567,18 @@ end
 # ╔═╡ d576fbe9-0d03-463d-9df7-b87a5566ce0c
 @mimic validate_foreign_key(transfers, subject_id, patients)
 
+# ╔═╡ 0cae47a3-2a77-4c88-8b86-6049ef38c34a
+PlutoFluid()
+
+# ╔═╡ 5a5b05a0-2fd1-4e2e-bea6-b10a2b1a2302
+PlutoSidebar()
+
 # ╔═╡ Cell order:
 # ╟─b8e5e6ff-3641-4295-80f5-f283195866f0
 # ╟─61a24b4f-45ba-4451-87a4-f22b4378bb18
 # ╠═c88a31f9-9065-4457-b9c9-19f10f7a2172
 # ╟─3f730b0d-9b20-4829-af49-6e79be08e83e
+# ╠═c4e5994f-4001-4a65-bef7-5bcb85783db1
 # ╟─6a793e26-8b04-5bcb-a3ee-1cfd2200e76e
 # ╠═b4063097-f70b-5178-8d6f-1e69081ce9c8
 # ╠═4380c98a-cc71-4dbe-9718-ae446f1ce238
@@ -681,5 +690,10 @@ end
 # ╟─605f262b-8e25-4b72-8d24-b3e2c2b1fdb9
 # ╠═7d693006-5560-4245-941b-06ee72cdf531
 # ╟─9e9b6698-a772-4479-b11c-36046cf3fc21
-# ╠═fa2bac9e-31ac-11f0-0569-d7837ec459af
-# ╠═ea49a14e-80c3-4d84-9749-6e192e7bb092
+# ╠═e11a84c6-e762-47d9-a366-13c9b39d7e3f
+# ╠═9a9e8bbd-17ab-41aa-b744-78fb13c8ac30
+# ╠═6da59f7a-8c98-4022-8b5e-f35892213631
+# ╠═d21919f4-1f35-4165-9d96-44917e88bd07
+# ╠═b9beff0c-1727-43a3-a0ac-e1e451a2f4f2
+# ╠═0cae47a3-2a77-4c88-8b86-6049ef38c34a
+# ╠═5a5b05a0-2fd1-4e2e-bea6-b10a2b1a2302

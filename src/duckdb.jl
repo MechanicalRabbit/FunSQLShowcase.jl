@@ -1,9 +1,11 @@
+module DuckDBQueries
+
 # Include logic needed for DuckDB dialect specific to FunSQL needs.
 # We plan to add this logic, with different implementation, to FunSQL.jl
 
+using DBInterface
 using DuckDB
 using FunSQL
-using DBInterface
 
 # We need to identify macros that are aggregates, but this isn't in the
 # duckdb_functions(), therefore we list them all here, as copied from
@@ -21,7 +23,7 @@ const duckdb_aggregates = [
  "regr_r2", "regr_slope", "regr_sxx", "regr_sxy", "regr_syy", "skewness",
  "stddev_pop", "stddev_samp", "string_agg", "sum", "var_pop", "var_samp",
  "weighted_avg",
- # genaral aggregate aliases
+ # general aggregate aliases
  "geometric_mean", "argmax", "argmin", "group_concat", "listagg", "wavg",
  "sumkahan", "kahan_sum", "list", "mean",
  # statisticial aggregages
@@ -64,25 +66,24 @@ let conn = DBInterface.connect(DuckDB.DB, ":memory:")
         name = QuoteNode(Symbol(fn))
         fun in union(fun_names, mod_names) ? continue : nothing
         closure = is_agg ? FunSQL.AggClosure : FunSQL.FunClosure
-        eval(:(
-            begin
-                const $fun = $closure($name)
-                export $fun
-            end))
+        @eval begin
+            const $fun = $closure($name)
+            export $fun
+        end
     end
 
     for fun in fun_names
-        eval(:(
-            begin
-                const $fun = FunSQL.$fun
-                export $fun
-            end))
+        @eval begin
+            const $fun = FunSQL.$fun
+            export $fun
+        end
     end
 
     for fun in mod_names
-        eval(:(
-            begin
-                export $fun
-            end))
+        @eval begin
+            export $fun
+        end
     end
+end
+
 end

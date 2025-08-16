@@ -1,5 +1,14 @@
 # Wrapper over DBInterface.Connection that uses DataFrame as a cursor.
 
+module DataFrameConnections
+
+export DataFrameConnection
+
+using DataAPI
+using DataFrames
+using DBInterface
+using FunSQL
+
 struct DataFrameConnection{WrappedConnType} <: DBInterface.Connection
     wrapped::WrappedConnType
 
@@ -84,3 +93,5 @@ DBInterface.close!(stmt::DataFrameStatement) =
 
 DBInterface.close!(::DataFrame) =
     nothing
+
+end

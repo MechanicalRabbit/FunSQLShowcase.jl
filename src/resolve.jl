@@ -1,3 +1,11 @@
+# Adjust the query based on the input columns.
+
+module DynamicQueries
+
+export funsql_custom_resolve, funsql_snoop_fields
+
+using FunSQL
+
 mutable struct CustomResolveNode <: FunSQL.AbstractSQLNode
     resolve::Any
     resolve_scalar::Any
@@ -20,7 +28,6 @@ upon its tail, including label and fields.
 """
 const CustomResolve = FunSQL.SQLQueryCtor{CustomResolveNode}(:CustomResolve)
 const funsql_custom_resolve = CustomResolve
-export funsql_custom_resolve
 
 function FunSQL.PrettyPrinting.quoteof(n::CustomResolveNode, ctx::FunSQL.QuoteContext)
     ex = Expr(:call, :custom_resolve) # nameof(CustomResolve)
@@ -53,7 +60,7 @@ function FunSQL.resolve_scalar(n::CustomResolveNode, ctx)
 end
 
 """
-    snoop_fields()
+    @funsql snoop_fields()
 
 display the current query's label and field names
 
@@ -73,10 +80,12 @@ end
 - [`CustomResolve`](@ref) for creating context-aware query transformations
 """
 funsql_snoop_fields() =
-    PlutoFunSQL.CustomResolve() do n, ctx
+    CustomResolve() do n, ctx
         tail′ = FunSQL.resolve(ctx)
         label = FunSQL.label(ctx.tail)
         t = FunSQL.row_type(tail′)
         @info label, collect(keys(t.fields))
         tail′
     end
+
+end

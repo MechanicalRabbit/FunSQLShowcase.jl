@@ -1,5 +1,11 @@
 # Custom layout for Pluto notebooks.
 
+module PlutoLayout
+
+export PlutoFluid, PlutoSidebar, PlutoIndex
+
+using HypertextLiteral
+
 """
     PlutoFluid()
 
@@ -562,3 +568,5 @@ convert(::Type{HypertextLiteral.Result}, ::PlutoIndex) =
       </script>
     </nav>
     """
+
+end
