@@ -1,6 +1,6 @@
 name = "FunSQLShowcase"
 uuid = "62600ddb-ce39-4ee3-b853-49e5dba2125b"
-version = "0.1"
+version = "0.1.0"
 
 [deps]
 AbstractPlutoDingetjes = "6e696c72-6542-2067-7265-42206c756150"
@@ -13,6 +13,7 @@ HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
 HypertextLiteral = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781"
+PlutoSliderServer = "2fc8631c-6f24-4c5b-bca7-cbb509c42db4"
 ProgressLogging = "33c8b6b6-d38a-422a-b730-caa89a2f386c"
 Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 Tables = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"

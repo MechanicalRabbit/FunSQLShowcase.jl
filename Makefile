@@ -3,15 +3,22 @@ help: #: show this help
 	@sed -n -e 's/^\([^:@]*\):.*#: \(.*\)/  make \1  |\2/p' Makefile | column -t -s '|'
 .PHONY: help
 
-shell: #: start Julia directly without Pluto
-	julia --project -e "using FunSQL, Revise; using PlutoFunSQL;" -i
+shell: #: start Julia REPL with FunSQLShowcase loaded
+	julia --project -e "using Revise; using FunSQL, FunSQLShowcase;" -i
 .PHONY: shell
 
-pluto: #: start a Pluto notebook process
-	julia --project -e 'using Pluto; Pluto.run(;dismiss_motivational_quotes=true, enable_ai_editor_features=false)'
+pluto: #: start a Pluto notebook server
+	julia --project -e 'using Pluto; Pluto.run(dismiss_motivational_quotes = true, enable_ai_editor_features = false)'
 .PHONY: pluto
 
-pkg_update: #: update all Julia packages
+build: #: export Pluto notebooks to HTML
+	julia --project build.jl
+.PHONY: build
+
+serve: #: start HTTP server for exported HTML
+	python -m http.server -d build
+.PHONY: serve
+
+pkg_update: #: update Julia project dependencies
 	julia --project -e 'using Pkg; Pkg.instantiate(); Pkg.resolve(); Pkg.update();'
 .PHONY: pkg_update
-

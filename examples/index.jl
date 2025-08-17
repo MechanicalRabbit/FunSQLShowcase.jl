@@ -38,7 +38,7 @@ md"""
 PlutoFluid()
 
 # ╔═╡ c56d674e-98b7-4c17-a81d-e9ac8227588e
-PlutoSidebar()
+PlutoSidebar(index = true)
 
 # ╔═╡ Cell order:
 # ╟─edb93cc8-859e-4433-9acd-d025be2a7d85

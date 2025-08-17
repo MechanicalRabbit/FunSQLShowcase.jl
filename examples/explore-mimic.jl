@@ -571,7 +571,7 @@ end
 PlutoFluid()
 
 # ╔═╡ 5a5b05a0-2fd1-4e2e-bea6-b10a2b1a2302
-PlutoSidebar()
+PlutoSidebar(index = true)
 
 # ╔═╡ Cell order:
 # ╟─b8e5e6ff-3641-4295-80f5-f283195866f0
