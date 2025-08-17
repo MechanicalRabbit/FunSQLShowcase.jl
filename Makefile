@@ -19,6 +19,10 @@ serve: #: start HTTP server for exported HTML
 	python -m http.server -d build
 .PHONY: serve
 
+pkg_instantiate: #: instantiate the project
+	julia --project -e 'using Pkg; Pkg.instantiate()'
+.PHONY: pkg_instantiate
+
 pkg_update: #: update Julia project dependencies
-	julia --project -e 'using Pkg; Pkg.instantiate(); Pkg.resolve(); Pkg.update();'
+	julia --project -e 'using Pkg; Pkg.update()'
 .PHONY: pkg_update
