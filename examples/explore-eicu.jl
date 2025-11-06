@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.20.16
+# v0.20.20
 
 #> [frontmatter]
 #> order = "3"
@@ -104,7 +104,7 @@ end
 	group()
 	define(max_hospid => max(hospitalid)) # FunSQL
 	define(any_age => any_value(age)) # DuckDB aggregate as marked
-	define(geomean_hospid => geomean(hospitalid)) # DuckDB aggregate marcro
+	define(geomean_hospid => geomean(hospitalid)) # DuckDB aggregate macro
 end
 
 # ╔═╡ d26a457f-3fd3-476c-9364-7c46128adb02
