@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.20.20
+# v0.20.21
 
 #> [frontmatter]
 #> order = "3"
@@ -28,6 +28,7 @@ begin
 	using FunSQLShowcase.DynamicQueries
 	using FunSQLShowcase.SummarizeQueries
 	using FunSQLShowcase.ValidateQueries
+	using FunSQLShowcase.TallyQueries
 	using FunSQLShowcase.eICU
 	using FunSQLShowcase.PlutoLayout
 end
@@ -45,17 +46,6 @@ md"""
 ## Appendix
 These represent technical details needed to setup the notebook.
 """
-
-# ╔═╡ 605f262b-8e25-4b72-8d24-b3e2c2b1fdb9
-md"""
-### Query Combinators
-"""
-
-# ╔═╡ 7d693006-5560-4245-941b-06ee72cdf531
-@funsql tally() = begin
-	group()
-	define(n => count())
-end
 
 # ╔═╡ 9e9b6698-a772-4479-b11c-36046cf3fc21
 md"""
@@ -121,8 +111,6 @@ PlutoSidebar(index = true)
 # ╠═74dd3c6e-6632-4f94-8980-d9065912bc3b
 # ╠═f597883d-51b8-4524-96a8-51351082e063
 # ╟─fff8f53f-f08e-44c6-94a9-17e8d213c497
-# ╟─605f262b-8e25-4b72-8d24-b3e2c2b1fdb9
-# ╠═7d693006-5560-4245-941b-06ee72cdf531
 # ╟─9e9b6698-a772-4479-b11c-36046cf3fc21
 # ╠═e2857b19-c6e7-429e-a11b-23817b07d68f
 # ╠═3096a920-7658-41a1-8e13-7504aa773f44

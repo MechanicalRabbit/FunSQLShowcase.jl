@@ -5,6 +5,7 @@ module PlutoCustomFormat
 using DataFrames
 using HypertextLiteral
 using Tables
+using URIs
 
 const CustomFormatType = Union{AbstractDataFrame}
 
@@ -35,9 +36,40 @@ end
 
 function _format_table_thead(t)
     names = Tables.columnnames(t)
+    cols = [unescapeuri.(split(string(name), '.')) for name in names]
+    pushfirst!(cols, [""])
+    w = length(cols)
+    h = maximum(length.(cols))
+    headers = Union{String, Nothing}[get(col, i-h+length(col), "") for i = 1:h, col in cols]
+    for i = 1:h
+        for j = w:-1:3
+            if (i == 1 || headers[i-1, j] === nothing) && headers[i, j-1] == headers[i, j]
+                headers[i, j] = nothing
+            end
+        end
+    end
+    lines = Vector{Tuple{String, Int, Bool}}[]
+    for i = 1:h
+        line = Tuple{String, Int, Bool}[]
+        j = 1
+        while j <= w
+            colspan = 1
+            while j + colspan <= w && headers[i, j+colspan] === nothing
+                colspan += 1
+            end
+            border =
+                i > 1 && j > 2 && headers[i-1, j] !== nothing ||
+                i < h && j > 2 && headers[i, j] !== nothing
+            push!(line, (headers[i, j], colspan, border))
+            j += colspan
+        end
+        push!(lines, line)
+    end
     @htl """
     <thead>
-    <tr><th></th>$([@htl """<th scope="col">$name</th>""" for name in names])</tr>
+    $([@htl """<tr>$([@htl """<th scope="col" colspan="$colspan" class="$(border ? "pluto-funsql-border" : "")">$header</th>"""
+                      for (header, colspan, border) in lines[i]])</tr>"""
+       for i = 1:h])
     </thead>
     """
 end
@@ -92,6 +124,7 @@ function _format_table_style(t)
     .pluto-funsql-table > table { width: max-content; }
     .pluto-funsql-table > table > caption { padding: .2rem .5rem; }
     .pluto-funsql-table > table > thead > tr > th { vertical-align; baseline; }
+    .pluto-funsql-table > table > thead > tr > th.pluto-funsql-border { border-left: 1px solid var(--table-border-color); }
     .pluto-funsql-table > table > tbody > tr:first-child > th { border-top: 1px solid var(--table-border-color); }
     .pluto-funsql-table > table > tbody > tr:first-child > td { border-top: 1px solid var(--table-border-color); }
     .pluto-funsql-table > table > tbody > tr > th { vertical-align: baseline; }

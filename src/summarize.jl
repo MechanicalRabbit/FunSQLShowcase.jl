@@ -94,7 +94,7 @@ function FunSQL.resolve(n::SummarizeNode, ctx)
     q = @funsql begin
         $tail
         group()
-        cross_join(summary_case => from(unnest(generate_series(1, $max_i)), columns = [index]))
+        cross_join(summary_case => from(unnest(generate_series(1, $max_i)), columns = [index]), private = true)
         define(args = $args)
     end
     FunSQL.resolve(q, ctx)

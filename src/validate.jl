@@ -56,7 +56,9 @@ returning metrics about referential integrity and cardinality
 """
 validate_foreign_key(source::FunSQL.SQLQuery, source_columns::Vector{Symbol},
                      target::FunSQL.SQLQuery, target_columns::Vector{Symbol}) = begin
-    source => $source.group($(source_columns...)).define(is_present => true)
+    join(
+        source => $source.group($(source_columns...)).define(is_present => true),
+        on = true)
     join(
         target => $target.group($(target_columns...)).define(is_present => true),
         on = and(args = $[

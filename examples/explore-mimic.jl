@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.20.20
+# v0.20.21
 
 #> [frontmatter]
 #> order = "2"
@@ -21,9 +21,11 @@ using Revise
 # ╔═╡ b9beff0c-1727-43a3-a0ac-e1e451a2f4f2
 begin
 	using FunSQL
+	using FunSQLShowcase.DuckDBQueries
 	using FunSQLShowcase.DynamicQueries
 	using FunSQLShowcase.SummarizeQueries
 	using FunSQLShowcase.ValidateQueries
+	using FunSQLShowcase.TallyQueries
 	using FunSQLShowcase.MIMIC
 	using FunSQLShowcase.PlutoLayout
 end
@@ -231,17 +233,6 @@ md"""
 ## Appendix
 These represent technical details needed to setup the notebook.
 """
-
-# ╔═╡ 605f262b-8e25-4b72-8d24-b3e2c2b1fdb9
-md"""
-### Query Combinators
-"""
-
-# ╔═╡ 7d693006-5560-4245-941b-06ee72cdf531
-@funsql tally() = begin
-	group()
-	define(n => count())
-end
 
 # ╔═╡ 9e9b6698-a772-4479-b11c-36046cf3fc21
 md"""
@@ -687,8 +678,6 @@ PlutoSidebar(index = true)
 # ╠═240fe1fa-5bdd-4846-9352-a9b3d55ac834
 # ╠═d576fbe9-0d03-463d-9df7-b87a5566ce0c
 # ╟─fff8f53f-f08e-44c6-94a9-17e8d213c497
-# ╟─605f262b-8e25-4b72-8d24-b3e2c2b1fdb9
-# ╠═7d693006-5560-4245-941b-06ee72cdf531
 # ╟─9e9b6698-a772-4479-b11c-36046cf3fc21
 # ╠═e11a84c6-e762-47d9-a366-13c9b39d7e3f
 # ╠═9a9e8bbd-17ab-41aa-b744-78fb13c8ac30
