@@ -8,23 +8,16 @@ using FunSQL
 using ..DuckDBQueries
 
 struct SummarizeNode <: FunSQL.TabularNode
-    names::Vector{Symbol}
-    type::Bool
     top_k::Int
-    nested::Bool
+    private::Bool
     exact::Bool
 
-    SummarizeNode(; names = Symbol[], type = true, top_k = 0, nested = false, exact = false) =
-        new(names, type, top_k, nested, exact)
+    SummarizeNode(; top_k = 0, private = false, exact = false) =
+        new(top_k, private, exact)
 end
 
-SummarizeNode(names...; type = true, top_k = 0, nested = false, exact = false) =
-    SummarizeNode(names = Symbol[names...], type = type, top_k = top_k, nested = nested, exact = exact)
-
-
 """
-    Summarize(; names = [], type = true, top_k = 0, nested = false, exact = false)
-    Summarize(names...; type = true, top_k = 0, nested = false, exact = false)
+    Summarize(; top_k = 0, private = false, exact = false)
 
 The `Summarize` combinator computes a number of aggregates over a tabular query.
 """
@@ -33,14 +26,11 @@ const funsql_summarize = Summarize
 
 function FunSQL.PrettyPrinting.quoteof(n::SummarizeNode, ctx::FunSQL.QuoteContext)
     ex = Expr(:call, :Summarize, FunSQL.quoteof(n.names)...)
-    if n.type
-        push!(ex.args, Expr(:kw, :type, n.type))
-    end
     if n.top_k > 0
         push!(ex.args, Expr(:kw, :top_k, n.top_k))
     end
-    if n.nested
-        push!(ex.args, Expr(:kw, :nested, n.nested))
+    if n.private
+        push!(ex.args, Expr(:kw, :private, n.private))
     end
     if n.exact
         push!(ex.args, Expr(:kw, :exact, n.exact))
@@ -52,27 +42,13 @@ function FunSQL.resolve(n::SummarizeNode, ctx)
     label = FunSQL.label(ctx.tail)
     tail = FunSQL.resolve(ctx)
     t = FunSQL.row_type(tail)
-    for name in n.names
-        if !haskey(t.fields, name)
-            throw(
-                FunSQL.ReferenceError(
-                    FunSQL.REFERENCE_ERROR_TYPE.UNDEFINED_NAME,
-                    name = name,
-                    path = FunSQL.get_path(ctx)))
-        end
-    end
-    names = isempty(n.names) ? Set(keys(t.fields)) : Set(n.names)
-    cases = _summarize_cases(t, names, n.nested)
-    if isempty(cases) && !n.nested
-        cases = _summarize_cases(t, names, true)
-    end
+    names = Set(keys(t.fields))
+    cases = _summarize_cases(t, n.private)
     cols = last.(cases)
     max_i = length(cases)
     args = FunSQL.SQLQuery[]
     push!(args, :column => _summarize_switch(first.(cases)))
-    if n.type
-        push!(args, :type => _summarize_switch(map(col -> @funsql(typeof(any_value($col))), cols)))
-    end
+    push!(args, :type => _summarize_switch(map(col -> @funsql(typeof(any_value($col))), cols)))
     push!(
         args,
         :n_not_null => _summarize_switch(map(col -> @funsql(count($col)), cols)),
@@ -80,13 +56,13 @@ function FunSQL.resolve(n::SummarizeNode, ctx)
     if n.exact
         push!(args, :ndv => _summarize_switch(map(col -> @funsql(count_distinct($col)), cols)))
     else
-        push!(args, :appx_ndv => _summarize_switch(map(col -> @funsql(approx_count_distinct($col)), cols)))
+        push!(args, :apx_ndv => _summarize_switch(map(col -> @funsql(approx_count_distinct($col)), cols)))
     end
     if n.top_k > 0
         for i = 1:n.top_k
             push!(
                 args,
-                Symbol("appx_top_$i") =>
+                Symbol("apx_top_$i") =>
                     _summarize_switch(map(col ->
                         @funsql(_summarize_approx_top($col, $(n.top_k), $i)), cols)))
         end
@@ -100,14 +76,14 @@ function FunSQL.resolve(n::SummarizeNode, ctx)
     FunSQL.resolve(q, ctx)
 end
 
-function _summarize_cases(t, name_set, nested)
+function _summarize_cases(t, private)
     cases = Tuple{String, FunSQL.SQLQuery}[]
     for (f, ft) in t.fields
-        f in name_set || continue
+        !(f in t.private_fields) || private || continue
         if ft isa FunSQL.ScalarType
             push!(cases, (String(f), FunSQL.Get(f)))
-        elseif ft isa FunSQL.RowType && nested
-            subcases = _summarize_cases(ft, Set(keys(ft.fields)), nested)
+        elseif ft isa FunSQL.RowType
+            subcases = _summarize_cases(ft, private)
             for (n, q) in subcases
                 push!(cases, ("$f.$n", FunSQL.Get(f) |> q))
             end
